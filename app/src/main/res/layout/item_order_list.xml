@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:orientation="vertical"
+    android:paddingBottom="15dp"
+    android:paddingLeft="15dp"
+    android:paddingRight="15dp"
+    android:paddingTop="15dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/order_list_text_style"
+            android:text="@string/order_id"
+            android:textColor="@color/main_style_color_green" />
+
+        <TextView
+            android:id="@+id/order_id_view"
+            style="@style/order_list_text_style"
+            android:paddingLeft="10dp"
+            android:textColor="@color/main_style_color_green"
+            tools:text="TextView" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/order_list_text_style"
+            android:text="@string/plate_number" />
+
+        <TextView
+            android:id="@+id/plate_number_view"
+            style="@style/order_list_text_style_value"
+            tools:text="TextView" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/order_list_text_style"
+            android:text="@string/owner_name" />
+
+        <TextView
+            android:id="@+id/owner_name"
+            style="@style/order_list_text_style_value"
+            tools:text="TextView" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/order_list_text_style"
+            android:text="@string/soc" />
+
+        <TextView
+            android:id="@+id/cur_battery"
+            style="@style/order_list_text_style_value"
+            tools:text="TextView" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/order_list_text_style"
+            android:text="@string/owner_phone" />
+
+        <TextView
+            android:id="@+id/owner_phone"
+            style="@style/order_list_text_style_value"
+            tools:text="TextView" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/order_list_text_style"
+            android:text="@string/location" />
+
+        <TextView
+            android:id="@+id/address"
+            style="@style/order_list_text_style_value"
+            tools:text="TextView" />
+
+    </LinearLayout>
+    <!--<Button-->
+    <!--android:id="@+id/cancel"-->
+    <!--style="@style/order_list_text_style"-->
+    <!--android:text="Button" />-->
+
+    <!--<Button-->
+    <!--android:id="@+id/confirm"-->
+    <!--style="@style/order_list_text_style"-->
+    <!--android:text="Button" />-->
+
+    <!--<Button-->
+    <!--android:id="@+id/done"-->
+    <!--style="@style/order_list_text_style"-->
+    <!--android:text="Button" />-->
+
+</LinearLayout>

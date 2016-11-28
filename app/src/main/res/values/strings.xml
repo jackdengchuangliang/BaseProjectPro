@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">AutoCharge</string>
+    <string name="hwpush_ability_value" translatable="false">successRateAnalytics</string>
+    <string name="order_id">工单号码：</string>
+    <string name="plate_number">车&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;牌：</string>
+    <string name="owner_name">车&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;主：</string>
+    <string name="soc">S&#160;&#160;&#160;O&#160;&#160;&#160;C&#160;&#160;：</string>
+    <string name="owner_phone">联系方式：</string>
+    <string name="location">位&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;置：</string>
+</resources>

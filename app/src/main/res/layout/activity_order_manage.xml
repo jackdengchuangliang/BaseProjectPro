@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_bg_color"
+    android:clickable="true"
+    android:enabled="true"
+    android:orientation="vertical">
+
+    <me.amiee.nicetab.NiceTabLayout
+        android:id="@+id/sliding_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@color/colorWhite"
+        app:ntlDefaultTabColor="#aab8b8b8"
+        app:ntlDividerWidth="0dp"
+        app:ntlDrawOrder="underlineIndicatorDivider"
+        app:ntlIndicatorColor="@color/main_style_color_green"
+        app:ntlIndicatorGravity="bottom"
+        app:ntlIndicatorHeight="2dp"
+        app:ntlSelectedTabColor="@color/main_style_color_green"
+        app:ntlShowDivider="false"
+        app:ntlTabDistributeEvenly="true"
+        app:ntlTabMode="titleOnly"
+        app:ntlTabOffset="10dp"
+        app:ntlTabPaddingRight="10dp"
+        app:ntlTextSize="20dp"
+        app:ntlTextStyle="normal"
+
+        app:ntlUnderlineColor="#aab8b8b8"
+        app:ntlUnderlineHeight="1dp" />
+
+
+    <com.optimumnano.autocharge.widget.CustomViewPager
+        android:id="@+id/order_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/logout"
+        android:layout_below="@+id/sliding_tabs"
+        android:overScrollMode="never" />
+
+    <Button
+        android:id="@+id/logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:background="@drawable/selecot_logout"
+        android:text="退出登录"
+        android:textColor="@color/colorWhite"
+        android:textSize="20dp" />
+
+</RelativeLayout>

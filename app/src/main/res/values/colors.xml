@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="Et_border_darker_gray">@android:color/darker_gray</color>
+    <color name="color_wtm_main_green">#0DA944</color>
+    <color name="colorWhite">#ffffff</color>
+    <color name="main_style_color_green">#0DA945</color>
+    <color name="main_style_color_green_pressed">#0b8723</color>
+    <color name="main_style_color_gray">#b8b8b8</color>
+    <color name="alpha_100">#0000</color>
+</resources>

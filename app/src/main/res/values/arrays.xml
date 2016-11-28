@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="order_oprations_items" >
+        <item>申请取消</item>
+        <item>完成工单</item>
+    </string-array>
+</resources>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_bg_color"
+    android:fitsSystemWindows="true"
+    >
+    <ImageView
+        android:id="@+id/logo_view"
+        android:src="@mipmap/splash_logo"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:scaleType="centerInside"
+        android:layout_marginTop="90dp"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_below="@id/logo_view"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="18dp"
+        android:textSize="23dp"
+        android:text="主动充维"
+        android:textColor="@color/main_style_color_green"
+        android:layout_height="wrap_content" />
+
+
+    <ImageView
+        android:src="@mipmap/splash_bottom"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:scaleType="centerCrop"
+        android:layout_marginTop="106dp"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>
