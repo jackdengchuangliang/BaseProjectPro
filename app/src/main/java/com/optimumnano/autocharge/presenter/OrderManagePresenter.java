@@ -24,9 +24,12 @@ public class OrderManagePresenter extends BasePresenter<IOrderView> {
         super(mView);
     }
 
-    public void cancelOrder(String orderId, String reason, int code) {
+    public void cancelOrder(final Order order, String reason, int code) {
+        if(order==null){
+            return;
+        }
         Map<String, Object> params = new HashMap<>();
-        params.put("orderId", orderId);
+        params.put("orderId", order.orderId);
         params.put("reason", reason);
         params.put("reasonCode", code);
         RequestUtil.url(Constant.URL_CANCEL_ORDER)
@@ -34,10 +37,14 @@ public class OrderManagePresenter extends BasePresenter<IOrderView> {
                 .params(params)
                 .requestType(HttpUtil.RequestBodyType.JSON)
                 .params(getRequestParams(params))
+                .showProgressDialog()
+                .showErrorToast()
+                .tag(getView().toString())
                 .callback(new HttpCallbackListener() {
                     @Override
                     public void onRequestSuccess(String result, Object requestData) {
-
+                        order.orderState = 4;
+                        getView().onOrderCanceled(order);
                     }
 
                     @Override
@@ -49,17 +56,29 @@ public class OrderManagePresenter extends BasePresenter<IOrderView> {
 
     }
 
-    public void changeOrderState(int state, String orderId) {
+    public void changeOrderState(final int state, final Order order) {
+        if(order==null){
+            return;
+        }
         Map<String, Object> params = new HashMap<>();
-        params.put("orderId", orderId);
+        params.put("orderId", order.orderId);
         params.put("status", state);
         RequestUtil.url(Constant.URL_CHANGE_ORDER_STATE)
                 .injectView(getView())
                 .requestType(HttpUtil.RequestBodyType.JSON)
                 .params(getRequestParams(params))
+                .showProgressDialog()
+                .tag(getView().toString())
+                .showErrorToast()
                 .callback(new HttpCallbackListener() {
                     @Override
                     public void onRequestSuccess(String result, Object requestData) {
+                        int oldState = order.orderState;
+                        order.orderState = state;
+                        if(order.orderState==5){
+                            getView().onOrderStateChanged(order,oldState,state);
+                        }
+
 
                     }
 
@@ -83,6 +102,9 @@ public class OrderManagePresenter extends BasePresenter<IOrderView> {
         RequestUtil.url(Constant.URL_GET_ORDERS)
                 .injectView(getView())
                 .params(getRequestParams(params))
+                .showProgressDialog()
+                .showErrorToast()
+                .tag(getView().toString())
                 .requestType(HttpUtil.RequestBodyType.JSON)
                 .callback(new HttpCallbackListener() {
                     @Override

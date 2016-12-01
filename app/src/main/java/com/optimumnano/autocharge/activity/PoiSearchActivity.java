@@ -2,13 +2,17 @@ package com.optimumnano.autocharge.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.EditText;
+import android.widget.TextView;
 
 import com.baidu.location.BDLocation;
 import com.baidu.mapapi.map.BaiduMap;
@@ -40,6 +44,7 @@ import com.baidu.mapapi.search.sug.OnGetSuggestionResultListener;
 import com.baidu.mapapi.search.sug.SuggestionResult;
 import com.baidu.mapapi.search.sug.SuggestionSearch;
 import com.baidu.mapapi.search.sug.SuggestionSearchOption;
+import com.baidu.mapapi.utils.CoordinateConverter;
 import com.baidu.navisdk.adapter.BNRoutePlanNode;
 import com.lgm.baseframe.base.BaseActivity;
 import com.lgm.baseframe.common.LogUtil;
@@ -56,9 +61,10 @@ import java.util.List;
  * poi搜索功能
  */
 public class PoiSearchActivity extends BaseActivity implements
-        OnGetPoiSearchResultListener, OnGetSuggestionResultListener, View.OnLongClickListener {
+        OnGetPoiSearchResultListener, OnGetSuggestionResultListener, View.OnLongClickListener, TextView.OnEditorActionListener {
 
     private static final String TAG = PoiSearchActivity.class.getSimpleName();
+
     private PoiSearch mPoiSearch = null;
     private SuggestionSearch mSuggestionSearch = null;
     private BaiduMap mBaiduMap = null;
@@ -66,7 +72,6 @@ public class PoiSearchActivity extends BaseActivity implements
     /**
      * 搜索城市,关键字输入窗口
      */
-    private EditText editCity = null;
     private AutoCompleteTextView keyWorldsView = null;
     private ArrayAdapter<String> sugAdapter = null;
     private int loadIndex = 0;
@@ -77,51 +82,76 @@ public class PoiSearchActivity extends BaseActivity implements
     private PoiOverlay mOverlay;
     private GeoCoder mSearch;
     private String markTitle;
-    private LatLng markLocation;
-    private boolean locationFlag=true;
+    private int showSuggest=0;
     private String mCurCity;
     private LatLng mResultLocation=null;
-    private boolean isSearched;
-
+    private boolean isIntentLaunch=false;
+    private boolean isClickItemSearch=false;
+    private Handler mHandler=new Handler();
+    private boolean isAddMark=false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_poisearch);
-        setTitle("搜索");
+        setTitle("位置搜索");
         leftView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 goToOrderAct();
             }
         });
-
-        initSearchModule();
-
-        editCity = (EditText) findViewById(R.id.city);
+        setRightCustomBtn("导航", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onekeyNavigation();
+            }
+        });
         keyWorldsView = (AutoCompleteTextView) findViewById(R.id.searchkey);
-        sugAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_dropdown_item_1line);
-        keyWorldsView.setAdapter(sugAdapter);
-        keyWorldsView.setThreshold(2);
+        keyWorldsView.setSelection(keyWorldsView.getText().length());
+        keyWorldsView.setOnEditorActionListener(this);
+
         mBaiduMap = ((SupportMapFragment) (getSupportFragmentManager()
-                                                   .findFragmentById(R.id.map))).getBaiduMap();
+                .findFragmentById(R.id.map))).getBaiduMap();
         mBaiduMap.setMyLocationEnabled(true);
-        /**
-         * 当输入关键字变化时，动态更新建议列表
-         */
-        keyWorldsView.addTextChangedListener(mTextWatcher);
+
+        initGeoNai();
+        initSearchModule();
+        Intent intent = getIntent();
+        markTitle = intent.getStringExtra("address");
+        if (markTitle!=null){
+            isIntentLaunch=true;
+            LatLng orderPosition = intent.getParcelableExtra(getClass().getSimpleName());
+            showSuggest=1;
+            isAddMark=false;
+            isClickItemSearch=false;
+            mSearch.reverseGeoCode(new ReverseGeoCodeOption().location(orderPosition));
+            orderPosition=new LatLng(22.7331113258,114.3803705933);
+            mResultLocation=gpsToBd09ll(orderPosition);
+            mBaiduMap.clear();
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    showSuggest=0;
+                }
+            },2000);
+        }
+
         mBaiduMap.setOnMapLongClickListener(new BaiduMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
                 markTitle="未知位置";
+                isAddMark=true;
+                isClickItemSearch=false;
                 mSearch.reverseGeoCode(new ReverseGeoCodeOption().location(latLng));
-                markLocation=latLng;
+                mResultLocation=latLng;
             }
         });
-        initGeoNai();
+
         mOverlay = new MyPoiOverlay(mBaiduMap,mLocation,mBaiduNavigation);
         mBaiduMap.setOnMarkerClickListener(mOverlay);
+
+
     }
 
     private void goToOrderAct() {
@@ -131,6 +161,17 @@ public class PoiSearchActivity extends BaseActivity implements
     }
 
     private void initSearchModule() {
+        //初始化定位模块
+        mLocation = new WTMBaiduLocation(this);
+        mLocation.start();
+        mLocation.setLocationListner(new WTMBaiduLocation.OnLocationReceivedListner() {
+            @Override
+            public void onLocationReceived(BDLocation bdLocation) {
+                mCurCity=bdLocation.getCity();
+                mCurLocation=new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude());
+                mLocation.stopLocation();
+            }
+        });
         // 初始化搜索模块，注册搜索事件监听
         mPoiSearch = PoiSearch.newInstance();
         mPoiSearch.setOnGetPoiSearchResultListener(this);
@@ -139,21 +180,6 @@ public class PoiSearchActivity extends BaseActivity implements
         mSuggestionSearch = SuggestionSearch.newInstance();
         mSuggestionSearch.setOnGetSuggestionResultListener(this);
 
-        //初始化定位模块
-        mLocation = new WTMBaiduLocation(this);
-        mLocation.start();
-        mLocation.setLocationListner(new WTMBaiduLocation.OnLocationReceivedListner() {
-            @Override
-            public void onLocationReceived(BDLocation bdLocation) {
-                mCurCity=bdLocation.getCity();
-                editCity.setText(mCurCity);
-                mCurLocation=new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude());
-                if (locationFlag)
-                showMap(bdLocation,mBaiduMap);
-                locationFlag=false;
-                mLocation.stopLocation();
-            }
-        });
         //初始化导航模块
         mBaiduNavigation=  new BaiduNavigation(PoiSearchActivity.this, BNRoutePlanNode.CoordinateType.BD09LL, BNRoutePlanNode.CoordinateType.BD09LL);
         mBaiduNavigation.setOnRoutePlanDoneListener(new BaiduNavigation.OnRoutePlanDoneListener() {
@@ -168,15 +194,7 @@ public class PoiSearchActivity extends BaseActivity implements
     private void initGeoNai() {
         mSearch = GeoCoder.newInstance();
         OnGetGeoCoderResultListener listener = new OnGetGeoCoderResultListener() {
-            public void onGetGeoCodeResult(GeoCodeResult result) {
-                if (result == null || result.error != SearchResult.ERRORNO.NO_ERROR) {
-                    showShortToast("抱歉,查询不到结果,请重试");
-                    return;
-                }
-                /*LatLng location = result.getLocation();
-                mBaiduNavigation.start(mCurLocation,location);*/
-                LogUtil.i(TAG, "sLatitude=" + mCurLocation.latitude + "   mCurLocation=" + mCurLocation.longitude);
-            }
+            public void onGetGeoCodeResult(GeoCodeResult result) {}
 
             @Override
             public void onGetReverseGeoCodeResult(ReverseGeoCodeResult result) {
@@ -186,38 +204,49 @@ public class PoiSearchActivity extends BaseActivity implements
                 if (result.getAddress()!=null)
                 markTitle = result.getAddress();
                 keyWorldsView.setText(markTitle);
+                keyWorldsView.setSelection(keyWorldsView.getText().length());
+
                 BitmapDescriptor bitmap = BitmapDescriptorFactory
-                        .fromResource(R.drawable.icon_marka);
-                OverlayOptions option=new MarkerOptions().position(markLocation)
+                        .fromResource(R.mipmap.icon_remote);
+                OverlayOptions option=new MarkerOptions().position(mResultLocation)
                         .icon(bitmap).title(markTitle);
                 mBaiduMap.clear();
                 mBaiduMap.addOverlay(option);
-                mBaiduMap.setOnMarkerClickListener(mOverlay);
+                if (!isAddMark){
+                    MapStatus.Builder builder = new MapStatus.Builder();
+                    builder.target(mResultLocation);
+                    builder.zoom(20);
+                    //移动当前位置到屏幕中心
+                    MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory.newMapStatus(builder.build());
+                    mBaiduMap.setMapStatus(mapStatusUpdate);
+                    mBaiduMap.setOnMarkerClickListener(mOverlay);
+
+                }
+
                 LogUtil.i(TAG, "address=" + markTitle);
             }
         };
         mSearch.setOnGetGeoCodeResultListener(listener);
     }
 
-    protected void showMap(BDLocation bdLocation, BaiduMap baiduMap) {
+    protected void showMap(double latitude,double longitude,float radius, BaiduMap baiduMap,float zoom) {
         MyLocationData locData = new MyLocationData.Builder()
-                .accuracy(bdLocation.getRadius())
+                .accuracy(radius)
                 // 此处设置开发者获取到的方向信息，顺时针0-360
-                .direction(100).latitude(bdLocation.getLatitude())
-                .longitude(bdLocation.getLongitude()).build();
+                .direction(0).latitude(latitude)
+                .longitude(longitude).build();
         baiduMap.setMyLocationData(locData);
         BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory
-                .fromResource(R.drawable.icon_geo);
+                .fromResource(R.mipmap.icon_remote);
         MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL, true, mCurrentMarker);
         baiduMap.setMyLocationConfigeration(config);
 
         MapStatus.Builder builder = new MapStatus.Builder();
-        builder.target(new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude()));
-        builder.zoom(18);
+        builder.target(new LatLng(latitude,longitude));
+        builder.zoom(zoom);
         //移动当前位置到屏幕中心
         MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory.newMapStatus(builder.build());
         baiduMap.setMapStatus(mapStatusUpdate);
-
 
     }
 
@@ -236,17 +265,40 @@ public class PoiSearchActivity extends BaseActivity implements
             /**
              * 使用建议搜索服务获取建议列表，结果在onSuggestionResult()中更新
              */
-            mSuggestionSearch
-                    .requestSuggestion((new SuggestionSearchOption())
-                            .keyword(cs.toString()).city(editCity.getText().toString()));
+            String keyword = cs.toString();
+            if (keyword!=null&&mCurCity!=null){
+                if (showSuggest==0)
+                mSuggestionSearch
+                        .requestSuggestion((new SuggestionSearchOption())
+                                .keyword(keyword).city(mCurCity));
+            }
+
         }
 
         @Override
         public void afterTextChanged(Editable s) {
-
         }
     };
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        sugAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_dropdown_item_1line);
+        keyWorldsView.setAdapter(sugAdapter);
+        keyWorldsView.setThreshold(2);
+        keyWorldsView.addTextChangedListener(mTextWatcher);
+        keyWorldsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String address = sugAdapter.getItem(position);
+                isAddMark=false;
+                isClickItemSearch=true;
+                searchKeyWord();
+            }
+        });
+        LogUtil.i("showSuggest=",""+showSuggest);
+    }
 
     @Override
     protected void onDestroy() {
@@ -313,8 +365,6 @@ public class PoiSearchActivity extends BaseActivity implements
         hideLoading();
         if (result.error != SearchResult.ERRORNO.NO_ERROR) {
             showShortToast( "抱歉，未找到结果");
-        } else {
-            //showShortToast( result.getName() + ": " + result.getAddress());
         }
     }
 
@@ -348,6 +398,16 @@ public class PoiSearchActivity extends BaseActivity implements
         return false;
     }
 
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if(actionId == EditorInfo.IME_ACTION_SEARCH){
+            searchKeyWord();
+            return true;
+        }
+
+        return false;
+    }
+
 
     private class MyPoiOverlay extends PoiOverlay {
 
@@ -365,46 +425,43 @@ public class PoiSearchActivity extends BaseActivity implements
 
     /**
      * 一键导航
-
      */
-    public void onekeyNavigation(View v) {
+    private void onekeyNavigation() {
         mLocation.start();
-        String keystr = keyWorldsView.getText().toString();
-        if (TextUtils.isEmpty(keystr)){
-            showShortToast("请输入要查询的地址");
-            return;
-        }
-        if (mResultLocation==null||!isSearched){
-            showShortToast("请先城市内搜索,再导航");
-            return;
-        }
-
         hideInput();
-        showLoading();
         setProgressTitle("正在规划路线...");
-        mBaiduNavigation.start(mCurLocation,mResultLocation);
-        mLocation.stopLocation();
-       /* mSearch.geocode(new GeoCodeOption()
-                .city(mCurCity)
-                .address(keystr));*/
+        showLoading();
+     /*   if (!isClickItemSearch&&!isAddMark&&isIntentLaunch){
+            LogUtil.i("isClickItemSearch===",""+isClickItemSearch);
+            searchKeyWord();
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startNavitation();
+                }
+            },2000);
+        }else {
+            startNavitation();
+        }*/
+        startNavitation();
     }
 
+    private void startNavitation() {
 
-    /**
-     * 响应城市内搜索按钮点击事件
-     *
-     * @param v
-     */
-    public void searchButtonProcess(View v) {
-        isSearched=true;
+        try {
+            mBaiduNavigation.start(mCurLocation,mResultLocation);
+        } catch (Exception e) {
+            showShortToast("导航失败,请重试");
+            hideLoading();
+            e.printStackTrace();
+        }
+        mLocation.stopLocation();
+    }
+
+    private void searchKeyWord(){
         mLocation.start();
         hideInput();
         setProgressTitle("正在查询...");
-        String citystr = editCity.getText().toString();
-        if (TextUtils.isEmpty(citystr)){
-            showShortToast("请输入要查询的城市");
-            return;
-        }
         String keystr = keyWorldsView.getText().toString();
         if (TextUtils.isEmpty(keystr)){
             showShortToast("请输入要查询的地址");
@@ -413,16 +470,36 @@ public class PoiSearchActivity extends BaseActivity implements
         showLoading();
         try {
             mPoiSearch.searchInCity((new PoiCitySearchOption())
-                    .city(citystr).keyword(keystr).pageNum(loadIndex));
+                    .city(mCurCity).keyword(keystr).pageNum(loadIndex));
             mLocation.stopLocation();
         } catch (Exception e) {
-            showShortToast("搜索失败,请先定位或换其他搜索关键字");
+            hideLoading();
+            showShortToast("搜索失败,请改变搜索关键字");
             e.printStackTrace();
         }
     }
+
+
+    /**
+     * 搜索按钮点击事件
+     *
+     * @param
+     */
+/*    public void startSearchKeyWord(View view) {
+        searchKeyWord();
+    }*/
 
     @Override
     public void onBackPressed() {
         goToOrderAct();
     }
+
+    private LatLng gpsToBd09ll(LatLng sourceLatLng){
+        CoordinateConverter converter  = new CoordinateConverter();
+        converter.from(CoordinateConverter.CoordType.GPS);
+        converter.coord(sourceLatLng);
+        return converter.convert();
+    }
+
+
 }

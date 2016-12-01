@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.lgm.baseframe.common.LogUtil;
 import com.lgm.baseframe.common.Utils;
+import com.lgm.baseframe.common.http.RequestUtil;
 import com.lgm.baseframe.ui.IBaseView;
 
 import butterknife.ButterKnife;
@@ -113,19 +114,29 @@ public abstract class BaseFragment extends Fragment implements View.OnClickListe
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
+		RequestUtil.getInstance().cancel(toString());
 		ButterKnife.unbind(this);
 	}
 
 	@Override
 	public void showLoading() {
 
-		((BaseActivity)getActivity()).showLoading();
+		try {
+			((BaseActivity)getActivity()).showLoading();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 
 	@Override
 	public void hideLoading() {
-		((BaseActivity)getActivity()).hideLoading();
+		try {
+			((BaseActivity)getActivity()).hideLoading();
+		} catch (Exception e) {
+			LogUtil.i("test","hideLoadingerror");
+			e.printStackTrace();
+		}
 	}
 
 	@Override

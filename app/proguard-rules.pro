@@ -43,6 +43,10 @@
 # manifest: provider for updates
 -keep public class com.huawei.hms.update.provider.UpdateProvider { public *; protected *; }
 
+#Pgy服务
+-libraryjars libs/pgyer_sdk_x.x.jar
+-dontwarn com.pgyersdk.**
+-keep class com.pgyersdk.** { *; }
 
 #baidu
 -keep class com.baidu.** { *; }

@@ -9,70 +9,37 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:orientation="horizontal" >
-
         <TextView
-            android:layout_gravity="center"
             android:gravity="center"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="在" >
-        </TextView>
-
-        <EditText
-            android:inputType="text"
-            android:maxLines="1"
-            android:gravity="center"
-            android:id="@+id/city"
-            android:layout_width="0dp"
-            android:layout_weight="3"
             android:layout_height="match_parent"
-            android:text="深圳" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="2"
-            android:layout_height="wrap_content"
-            android:text="市内找" >
+            android:text="目的地:" >
         </TextView>
 
         <AutoCompleteTextView
+            android:imeOptions="actionSearch"
             android:singleLine="true"
             android:text="深圳坪山站"
             android:id="@+id/searchkey"
             android:layout_width="0dp"
-            android:layout_weight="8"
-            android:layout_height="wrap_content"
+            android:layout_weight="5"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
             android:hint="请输入搜索内容"
             />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="45dp"
-        android:orientation="horizontal" >
-
-        <Button
-            android:layout_marginRight="5dp"
+      <!--  <Button
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="2dp"
+            android:onClick="startSearchKeyWord"
             android:background="@drawable/selecot_bt_normal_bg"
-            android:id="@+id/search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="searchButtonProcess"
-            android:text="城市内搜索" />
-        <Button
-            android:background="@drawable/selecot_bt_normal_bg"
-            android:paddingLeft="5dp"
-                android:id="@+id/onekeynavi"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:onClick="onekeyNavigation"
-                android:text="一键导航" />
-
+            android:layout_width="0dp"
+            android:layout_weight="1.2"
+            android:layout_height="match_parent"
+            android:text="搜索"
+            />-->
     </LinearLayout>
-
     <fragment
         android:id="@+id/map"
         android:layout_width="match_parent"

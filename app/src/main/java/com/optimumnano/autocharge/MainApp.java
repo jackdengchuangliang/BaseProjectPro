@@ -5,6 +5,7 @@ import android.app.Application;
 import com.baidu.mapapi.SDKInitializer;
 import com.lgm.baseframe.common.http.HttpClientManager;
 import com.optimumnano.autocharge.common.Constant;
+import com.pgyersdk.crash.PgyCrashManager;
 
 /**
  * 作者：刘广茂 on 2016/11/18 16:37
@@ -21,6 +22,8 @@ public class MainApp extends Application {
         HttpClientManager httpClientManager = HttpClientManager.getInstance();
         httpClientManager.initOkHttpClient(this);
         httpClientManager.setUserAgent(Constant.USER_AGENT);
+        PgyCrashManager.register(this);
+
     }
 
 

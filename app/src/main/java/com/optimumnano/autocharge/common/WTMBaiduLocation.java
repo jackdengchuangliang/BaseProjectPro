@@ -61,10 +61,6 @@ public class WTMBaiduLocation implements BDLocationListener{
         mLocationClient.stop();
     }
 
-    public void onLocationResume(){
-        mLocationClient.registerLocationListener( myListener ); //注册监听函数
-    }
-
     public void onLocationDestroy(){
         if (mLocationClient!=null){
             mLocationClient.stop();
@@ -112,7 +108,6 @@ public class WTMBaiduLocation implements BDLocationListener{
     }
 
     private OnLocationReceivedListner locationListner;
-
 
     public interface OnLocationReceivedListner{
         void onLocationReceived(BDLocation bdLocation);

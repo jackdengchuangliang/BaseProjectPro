@@ -48,13 +48,13 @@ public class RequestCreator {
         return this;
     }
 
-    public RequestCreator showProgressDialog(Object object) {
+    public RequestCreator showProgressDialog() {
         isShowProgressDialog = true;
         return this;
     }
 
 
-    public RequestCreator showErrorToast(Object object) {
+    public RequestCreator showErrorToast() {
         isShowErrorToast = true;
         return this;
     }

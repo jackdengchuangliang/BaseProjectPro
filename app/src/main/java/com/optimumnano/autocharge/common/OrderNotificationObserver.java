@@ -1,67 +1,74 @@
-package com.optimumnano.autocharge.receivers;
+package com.optimumnano.autocharge.common;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
 
-import com.igexin.sdk.PushConsts;
-import com.lgm.baseframe.common.LogUtil;
-import com.lgm.baseframe.common.http.HttpUtil;
-import com.lgm.baseframe.common.http.RequestUtil;
+import com.alibaba.fastjson.JSON;
 import com.optimumnano.autocharge.R;
 import com.optimumnano.autocharge.activity.OrderManageActivity;
-import com.optimumnano.autocharge.common.Constant;
-import com.optimumnano.autocharge.common.OrderNotificationObserver;
+import com.optimumnano.autocharge.models.Order;
+import com.optimumnano.autocharge.models.PushMessage;
+import com.pgyersdk.crash.PgyCrashManager;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
-public class GetuiReceiver extends BroadcastReceiver {
+/**
+ * 作者：刘广茂 on 2016/11/26 16:07
+ * <p>
+ * 邮箱：liuguangmao@optimumchina.com
+ */
+public class OrderNotificationObserver {
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        // TODO: This method is called when the BroadcastReceiver is receiving
-        LogUtil.e("action",intent.getAction());
-        Bundle bundle = intent.getExtras();
+    private static OrderNotificationObserver orderNotificationObserver;
 
-        switch (bundle.getInt(PushConsts.CMD_ACTION)) {
-            case PushConsts.GET_CLIENTID:
-
-                String cid = bundle.getString("clientid");
-                LogUtil.e("clientid",cid);
-                break;
-            case PushConsts.GET_MSG_DATA:
-                String taskid = bundle.getString("taskid");
-                String messageid = bundle.getString("messageid");
-                byte[] payload = bundle.getByteArray("payload");
-                if (payload != null) {
-                    String data = new String(payload);
-                    // TODO:接收处理透传（payload）数据
-                    OrderNotificationObserver.getInstance().showNotification(context, data);
-                    //showPushMessage(PushMainActivity.RECEIVE_PUSH_MSG, content);
-                    OrderNotificationObserver.getInstance().notifyNewOrder();
-                }
-                break;
-            default:
-                break;
-        }
+    private OrderNotificationObserver() {
     }
 
+    public static OrderNotificationObserver getInstance() {
+        if (orderNotificationObserver == null) {
+            orderNotificationObserver = new OrderNotificationObserver();
+        }
+        return orderNotificationObserver;
+    }
 
+    public OrderNotifacation getOrderNotifacation() {
+        return orderNotifacation;
+    }
+
+    public void setOrderNotifacation(OrderNotifacation orderNotifacation) {
+        this.orderNotifacation = orderNotifacation;
+    }
+
+    private OrderNotifacation orderNotifacation;
+
+
+    public void notifyNewOrder() {
+        if (orderNotifacation != null) {
+            orderNotifacation.notifyNewOrder();
+        }
+    }
 
     public void showNotification(Context context, String data){
         NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
+        PushMessage pushMessage;
+        try {
+             pushMessage = JSON.parseObject(data, PushMessage.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+        if(pushMessage==null){
+            return;
+        }
 
         mBuilder.setContentTitle("新工单")//设置通知栏标题
                 .setContentText(data) //设置通知栏显示内容
-        .setContentIntent(getDefalutIntent(Notification.FLAG_AUTO_CANCEL,context)) //设置通知栏点击意图
+                .setContentIntent(getDefalutIntent(Notification.FLAG_AUTO_CANCEL,context)) //设置通知栏点击意图
                 //  .setNumber(number) //设置通知集合的数量
                 .setTicker("新工单") //通知首次出现在通知栏，带上升动画效果的
                 .setWhen(System.currentTimeMillis())//通知产生的时间，会在通知信息里显示，一般是系统获取到的时间
@@ -76,10 +83,34 @@ public class GetuiReceiver extends BroadcastReceiver {
 
     }
 
-    public PendingIntent getDefalutIntent(int flags,Context context){
+
+    public PendingIntent getDefalutIntent(int flags, Context context){
 
         Intent intent = new Intent(context,OrderManageActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
         return pendingIntent;
     }
+
+
+    public interface OrderNotifacation {
+        void notifyNewOrder();
+        void doneOrder(Order order);
+        void cancelOrder(Order order);
+    }
+
+
+    public void doneOrder (Order order){
+       if(orderNotifacation!=null){
+           orderNotifacation.doneOrder(order);
+       }
+    }
+
+    public void cancelOrder (Order order){
+        if(orderNotifacation!=null){
+            orderNotifacation.cancelOrder(order);
+        }
+    }
+
+
+
 }

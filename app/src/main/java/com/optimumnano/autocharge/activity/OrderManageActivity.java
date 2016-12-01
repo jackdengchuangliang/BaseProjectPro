@@ -10,8 +10,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
 
 import com.huawei.hms.api.ConnectionResult;
 import com.huawei.hms.api.HuaweiApiClient;
@@ -26,6 +31,7 @@ import com.lgm.baseframe.common.http.HttpUtil;
 import com.lgm.baseframe.common.http.RequestUtil;
 import com.optimumnano.autocharge.R;
 import com.optimumnano.autocharge.common.Constant;
+import com.optimumnano.autocharge.models.Order;
 import com.optimumnano.autocharge.presenter.LogoutPresenter;
 import com.optimumnano.autocharge.view.ILogoutView;
 import com.optimumnano.autocharge.widget.CustomViewPager;
@@ -36,7 +42,6 @@ import java.util.Map;
 import butterknife.Bind;
 import butterknife.OnClick;
 import me.amiee.nicetab.NiceTabLayout;
-
 
 
 /**
@@ -52,6 +57,10 @@ public class OrderManageActivity extends BaseActivity implements ILogoutView, Hu
     @Bind(R.id.sliding_tabs)
     NiceTabLayout niceTabLayout;
     LogoutPresenter logoutPresenter;
+    @Bind(R.id.reason_view)
+    EditText reasonView;
+    @Bind(R.id.cover_layout)
+    RelativeLayout coverLayout;
 
 
     private OrderListFragment.OrderState[] mItems = new OrderListFragment.OrderState[]{
@@ -60,6 +69,7 @@ public class OrderManageActivity extends BaseActivity implements ILogoutView, Hu
             OrderListFragment.OrderState.CANCELED};
     private boolean isExit = false;
     private HuaweiApiClient huaweiApiClient;
+    private PagerAdapter mPagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,16 +77,37 @@ public class OrderManageActivity extends BaseActivity implements ILogoutView, Hu
         setContentView(R.layout.activity_order_manage);
         setTitle("工单管理");
         leftView.setVisibility(View.GONE);
-        PagerAdapter mPagerAdapter = new PagerAdapter(getSupportFragmentManager(), mItems);
+        mPagerAdapter = new PagerAdapter(getSupportFragmentManager(), mItems);
         orderPager.setAdapter(mPagerAdapter);
         niceTabLayout.setViewPager(orderPager);
         logoutPresenter = new LogoutPresenter(this);
         initHuaweiPush();
         String clientid = PushManager.getInstance().getClientid(this);
-        if(!TextUtils.isEmpty(clientid)){
-            submitPushID("getui",clientid);
+        if (!TextUtils.isEmpty(clientid)) {
+            submitPushID("getui", clientid);
         }
+        coverLayout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true;
+            }
+        });
+        reasonView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                findViewById(R.id.send).setEnabled(s.length() > 3);
+            }
+        });
 
     }
 
@@ -87,13 +118,12 @@ public class OrderManageActivity extends BaseActivity implements ILogoutView, Hu
     }
 
 
-
-    private void submitPushID(String platform,String cid) {
-        Map<String,Object> params = new HashMap<>();
-        params.put("registerId",cid);
-        params.put("platform",platform);
-        Map<String,Object> rootParams = new HashMap<>();
-        rootParams.put("params",params);
+    private void submitPushID(String platform, String cid) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("registerId", cid);
+        params.put("platform", platform);
+        Map<String, Object> rootParams = new HashMap<>();
+        rootParams.put("params", params);
         RequestUtil.url(Constant.URL_SUBMIT_PUSH_ID)
                 .params(rootParams)
                 .requestType(HttpUtil.RequestBodyType.JSON)
@@ -109,12 +139,12 @@ public class OrderManageActivity extends BaseActivity implements ILogoutView, Hu
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 logoutPresenter.logout();
-                Intent intent = new Intent(mContext,LoginActivity.class);
+                Intent intent = new Intent(mContext, LoginActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
-        builder.setNegativeButton("取消",null);
+        builder.setNegativeButton("取消", null);
         builder.create().show();
     }
 
@@ -137,7 +167,7 @@ public class OrderManageActivity extends BaseActivity implements ILogoutView, Hu
             @Override
             public void onResult(TokenResult result) {
                 String token = result.getTokenRes().getToken();
-                if(!TextUtils.isEmpty(token)){
+                if (!TextUtils.isEmpty(token)) {
                     submitPushID("huawei", token);
                 }
             }
@@ -154,7 +184,7 @@ public class OrderManageActivity extends BaseActivity implements ILogoutView, Hu
 
     }
 
-    public  boolean isConnected() {
+    public boolean isConnected() {
         if (huaweiApiClient != null && huaweiApiClient.isConnected()) {
             return true;
         } else {
@@ -162,9 +192,42 @@ public class OrderManageActivity extends BaseActivity implements ILogoutView, Hu
         }
     }
 
+    @OnClick({R.id.cancel, R.id.send})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.cancel:
+                coverLayout.setVisibility(View.GONE);
+                hideInput();
+                break;
+            case R.id.send:
+                for (OrderListFragment fragment : mPagerAdapter.mFragments) {
+                    if (fragment.getOrderState() == OrderListFragment.OrderState.UNDONE) {
+                        fragment.cancelOrder(beCanceledOrder, reasonView.getText().toString(), -1);
+                        hideInput();
+                        coverLayout.setVisibility(View.GONE);
+                        break;
+                    }
+                }
+                break;
+        }
+    }
+
+    private void showInputReasonView() {
+        coverLayout.setVisibility(View.VISIBLE);
+        reasonView.requestFocus();
+        reasonView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showInputMethod(reasonView);
+            }
+        },200);
+
+    }
 
 
-    private static class PagerAdapter extends FragmentStatePagerAdapter {
+    private Order beCanceledOrder;
+
+    private class PagerAdapter extends FragmentStatePagerAdapter {
 
         OrderListFragment[] mFragments;
         OrderListFragment.OrderState[] mTabs;
@@ -179,6 +242,16 @@ public class OrderManageActivity extends BaseActivity implements ILogoutView, Hu
             for (int i = 0; i < mTabs.length; i++) {
                 mFragments[i] = new OrderListFragment();
                 mFragments[i].setOrderState(tabs[i]);
+                if (tabs[i] == OrderListFragment.OrderState.UNDONE) {
+                    mFragments[i].setOnClickCustomCancelReason(new OrderListFragment.OnClickCustomCancelReason() {
+                        @Override
+                        public void onClickCustomCacelReason(Order order) {
+                            beCanceledOrder = order;
+                            showInputReasonView();
+                        }
+                    });
+                }
+
             }
 
             for (int i = 0; i < mTabs.length; i++) {

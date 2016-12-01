@@ -6,6 +6,13 @@ package com.optimumnano.autocharge.models;
  * 邮箱：liuguangmao@optimumchina.com
  */
 public class Order {
+    public static final int STATE_NEW = 0;
+    public static final int STATE_CONFIRMED = 1;
+    public static final int STATE_REQUEST_CANCEL = 2;
+    public static final int STATE_CANCEL_REFUSES = 3;
+    public static final int STATE_CANCELED = 4;
+    public static final int STATE_DONE = 5;
+
     public String orderId;//ID
     public int orderState;//工单状态
     public String plateNumber;//物流车车牌号
@@ -16,8 +23,23 @@ public class Order {
     public double latitude;//物流车最后一次定位纬度
     public double longitude;//物流车最后一次定位经度
 
+    @Override
+    public boolean equals(Object obj) {
+        if(obj==null){
+            return false;
+        }
+        if(obj==this){
+            return true;
+        }
+        if(obj instanceof Order){
+            Order order = (Order) obj;
+            return hashCode()==order.hashCode();
+        }
+        return false;
+    }
 
-
-
-
+    @Override
+    public int hashCode() {
+        return orderId == null ? 0 : orderId.hashCode() << 1;
+    }
 }

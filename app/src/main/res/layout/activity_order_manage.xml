@@ -45,10 +45,80 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:gravity="center"
         android:background="@drawable/selecot_logout"
+        android:gravity="center"
         android:text="退出登录"
         android:textColor="@color/colorWhite"
         android:textSize="20dp" />
+
+    <RelativeLayout
+        android:id="@+id/cover_layout"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black_half_trance">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@color/bg_gray"
+            android:paddingBottom="15dp">
+
+            <RelativeLayout
+                android:id="@+id/top_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:padding="10dp"
+                    android:text="取消"
+                    android:textColor="@color/text_dark"
+                    android:textSize="13dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:padding="10dp"
+                    android:text="原因"
+                    android:textColor="@color/text_dark"
+                    android:textSize="17dp" />
+
+                <TextView
+                    android:id="@+id/send"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:padding="10dp"
+                    android:enabled="false"
+                    android:text="发送"
+                    android:textColor="@color/selector_cancel_order_reason_send"
+                    android:textSize="13dp" />
+
+            </RelativeLayout>
+
+
+            <EditText
+                android:id="@+id/reason_view"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_below="@+id/top_layout"
+                android:layout_marginBottom="15dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/bg_cancel_order_et_bg"
+                android:gravity="top|left"
+                android:padding="5dp" />
+
+
+        </RelativeLayout>
+    </RelativeLayout>
 
 </RelativeLayout>

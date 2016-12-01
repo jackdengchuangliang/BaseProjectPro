@@ -85,9 +85,7 @@ public class PoiOverlay extends OverlayManager implements View.OnClickListener, 
             Bundle bundle = new Bundle();
             bundle.putInt("index", i);
             markerList.add(new MarkerOptions()
-                    /*.icon(BitmapDescriptorFactory.fromAssetWithDpi("Icon_mark"
-                            + markerSize + ".png")).extraInfo(bundle)*/
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_marka)).extraInfo(bundle)
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_remote)).extraInfo(bundle)
                     .position(mPoiResult.getAllPoi().get(i).location));
             
         }
@@ -162,7 +160,13 @@ public class PoiOverlay extends OverlayManager implements View.OnClickListener, 
             public void onClick(DialogInterface dialog, int which) {
                 activity.showLoading();
                 activity.setProgressTitle("正在规划路线...");
-                mBaiduNavigation.start(mSLatLng, mELatLng);
+                try {
+                    mBaiduNavigation.start(mSLatLng, mELatLng);
+                } catch (Exception e) {
+                    activity.showShortToast("导航失败,请重试");
+                    activity.hideLoading();
+                    e.printStackTrace();
+                }
                 mLocation.stopLocation();
             }
         });

@@ -16,6 +16,7 @@ import com.optimumnano.autocharge.R;
 import com.optimumnano.autocharge.common.Constant;
 import com.optimumnano.autocharge.models.Order;
 import com.optimumnano.autocharge.view.IOrderView;
+import com.pgyersdk.update.PgyUpdateManager;
 
 import java.util.List;
 
@@ -34,10 +35,10 @@ public class SplashActivity extends AppCompatActivity implements IOrderView {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // hideTitle();
-        StatusBarCompat.setStatusBarColor(this, R.color.main_bg_color, false);
+      //  StatusBarCompat.setStatusBarColor(this, R.color.main_bg_color, false);
         PushManager.getInstance().initialize(this.getApplicationContext());
         setContentView(R.layout.activity_splash);
-
+        PgyUpdateManager.register(this);
         hideBottomUIMenu();
         Handler handler = new Handler() {
             @Override

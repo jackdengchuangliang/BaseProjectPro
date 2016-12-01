@@ -24,7 +24,6 @@ import com.lgm.baseframe.common.LogUtil;
 import com.lgm.baseframe.common.Utils;
 import com.lgm.baseframe.common.http.PersistentCookieStore;
 import com.optimumnano.autocharge.R;
-import com.optimumnano.autocharge.common.PhoneUtils;
 import com.optimumnano.autocharge.common.StringUtils;
 import com.optimumnano.autocharge.models.UserInfo;
 import com.optimumnano.autocharge.presenter.LoginPresenter;
@@ -168,7 +167,7 @@ public class LoginActivity extends BaseActivity implements ILoginView, AdapterVi
             showShortToast("电话号码为空");
             return null;
         }
-        else if (!PhoneUtils.isPhoneNumber(phoneNum)) {
+        else if (!StringUtils.isPhoneNumber(phoneNum)) {
             showShortToast("电话号码格式错误");
             return null;
         }
@@ -199,7 +198,7 @@ public class LoginActivity extends BaseActivity implements ILoginView, AdapterVi
             showShortToast("车牌号为空");
             return null;
         }
-        else if (!PhoneUtils.isMatch(regex, plateNum)) {
+        else if (!StringUtils.isMatch(regex, plateNum)) {
             showShortToast("车牌号格式错误");
             return null;
         }
@@ -234,7 +233,7 @@ public class LoginActivity extends BaseActivity implements ILoginView, AdapterVi
 
     @Override
     public void getVerificationCodeSuccess(int userStateCode) {
-        startTimer();
+        //startTimer();
         Utils.showShortToast(this, "获取验证码成功");
         LogUtil.i(TAG, "userStateCode=" + userStateCode);
     }
@@ -286,6 +285,7 @@ public class LoginActivity extends BaseActivity implements ILoginView, AdapterVi
             case R.id.tv_act_login_getcode:
                 if (getPhoneNumber() != null) {
                     setProgressTitle("正在获取验证码...");
+                    startTimer();
                     loginPresenter.getVerificationCode();
                 }
                 break;

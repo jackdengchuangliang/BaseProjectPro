@@ -193,7 +193,7 @@ public class BaiduNavigation {
                     authinfo = "key校验成功!";
                 }
                 else {
-                    authinfo = "key校验失败, " + msg;
+                    authinfo = "key校验失败";
                     showToastMsg(authinfo+"请稍后重试,或与客服联系");
                 }
 
@@ -258,7 +258,7 @@ public class BaiduNavigation {
             for (Activity ac : activityList) {
 
                 if (ac.getClass().getName().endsWith("BNGuideActivity")) {
-                    LogUtil.i("tag", "不能从当前activity开启导航=" + mContext.getClass().getSimpleName());
+                    LogUtil.i("tag", "不能从当前页面开启导航=" + mContext.getClass().getSimpleName());
                     return;
                 }
             }
@@ -274,7 +274,7 @@ public class BaiduNavigation {
         @Override
         public void onRoutePlanFailed() {
             routePlanDoneListener.onRoutePlanDone();
-            showToastMsg("算路失败,可能距离太近,请重试");
+            showToastMsg("算路失败,请重试");
         }
     }
 

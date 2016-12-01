@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="order_oprations_items" >
-        <item>申请取消</item>
+        <item>拨打电话</item>
+        <item>取消工单</item>
         <item>完成工单</item>
+        <item>查看位置</item>
+        <item>一键导航</item>
+    </string-array>
+
+    <string-array name="cancel_order_reasons" >
+        <item>与物流车协商一致</item>
+        <item>充电车故障</item>
+        <item>其他</item>
     </string-array>
 </resources>

@@ -37,7 +37,7 @@ android {
         renderscriptSupportModeEnabled true
         testInstrumentationRunner "android.support.baidunavi_test.runner.AndroidJUnitRunner"
         ndk {
-            abiFilters "armeabi","arm64-v8a","armeabi-v7a"
+            abiFilters "armeabi","armeabi-v7a"
         }
         manifestPlaceholders = [
                 GETUI_APP_ID : "bYu8DvNoPQ7pVzr2dR1Rh4",
@@ -87,6 +87,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.getui:sdk:+'
     compile 'com.android.support:design:24.1.1'
-    compile 'com.githang:status-bar-compat:0.3'
+    compile 'com.githang:status-bar-compat:0.5'
     compile 'com.zhy:autolayout:1.4.5'
 }
