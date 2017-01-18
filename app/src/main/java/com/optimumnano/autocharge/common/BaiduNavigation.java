@@ -1,12 +1,12 @@
-package com.optimumnano.autocharge.common;
+package com.longshine.electriccars.baidu.service;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.baidu.mapapi.model.LatLng;
@@ -15,9 +15,9 @@ import com.baidu.navisdk.adapter.BNOuterTTSPlayerCallback;
 import com.baidu.navisdk.adapter.BNRoutePlanNode;
 import com.baidu.navisdk.adapter.BNaviSettingManager;
 import com.baidu.navisdk.adapter.BaiduNaviManager;
-import com.lgm.baseframe.base.BaseActivity;
-import com.lgm.baseframe.common.LogUtil;
-import com.optimumnano.autocharge.activity.BNGuideActivity;
+import com.longshine.electriccars.utils.NetUtils;
+import com.longshine.electriccars.view.activity.BaseActivity;
+import com.tbruyelle.rxpermissions.RxPermissions;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,10 +25,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.baidu.navisdk.adapter.BNRoutePlanNode.CoordinateType.BD09LL;
-import static com.baidu.navisdk.adapter.BNRoutePlanNode.CoordinateType.WGS84;
 
 /**
- * Created by jack on 2016/11/19 0019.
+ * Created by jack on 2016/12/22
  */
 
 public class BaiduNavigation {
@@ -36,8 +35,9 @@ public class BaiduNavigation {
 
     public static List<Activity> activityList = new LinkedList<Activity>();
 
-    private static final String APP_FOLDER_NAME = "wtmautocharge";
+    private static final String APP_FOLDER_NAME = "mfwnyczc";
     private final BaseActivity mContext;
+    private final RxPermissions mRxPermissions;
     private String mSDCardPath = null;
     private BNRoutePlanNode.CoordinateType mSCoordinateType;
     private BNRoutePlanNode.CoordinateType mECoordinateType;
@@ -45,7 +45,7 @@ public class BaiduNavigation {
      * 描述:默认经纬度坐标为国际经纬度坐标系
      * 可选参数:GCJ02,BD09_MC,WGS84,BD09LL;
      */
-    public static final BNRoutePlanNode.CoordinateType DEFULT_ENDCOORDINATETYPE = WGS84;
+    public static final BNRoutePlanNode.CoordinateType DEFULT_ENDCOORDINATETYPE = BD09LL;
     public static final BNRoutePlanNode.CoordinateType DEFULT_STARTCOORDINATETYPE = BD09LL;
     public static final String ROUTE_PLAN_NODE = "routePlanNode";
     public static final String SHOW_CUSTOM_ITEM = "showCustomItem";
@@ -54,11 +54,12 @@ public class BaiduNavigation {
 
     /**
      * 百度导航的类
-     * @param context 上下文
+     * @param context activity
      * @param sCoordinateType 起点定位的坐标系,可选参数:GCJ02,BD09_MC,WGS84,BD09LL
      */
     public BaiduNavigation(BaseActivity context, BNRoutePlanNode.CoordinateType sCoordinateType, BNRoutePlanNode.CoordinateType eCoordinateType) {
         this.mContext = context;
+        mRxPermissions=new RxPermissions(context);
         mSCoordinateType = sCoordinateType;
         mECoordinateType = eCoordinateType;
         initDirs();
@@ -72,6 +73,7 @@ public class BaiduNavigation {
 
     public BaiduNavigation(BaseActivity context) {
         this.mContext = context;
+        mRxPermissions=new RxPermissions(context);
         mSCoordinateType = DEFULT_STARTCOORDINATETYPE;
         mECoordinateType = DEFULT_ENDCOORDINATETYPE;
         initDirs();
@@ -92,12 +94,32 @@ public class BaiduNavigation {
      * @param elatitude  终点纬度
      */
     public void start(double slongitude, double slatitude, double elongitude, double elatitude,String sNodeName, String eNodeName) {
-        if (BaiduNaviManager.isNaviInited()) {
-            routeplanToNavi(mSCoordinateType, mECoordinateType, slongitude, slatitude, elongitude, elatitude,sNodeName,eNodeName);
-        }else {
-            mContext.hideLoading();
-            showToastMsg("初始失败");
+        if (!NetUtils.isConnected(mContext)){
+            showToastMsg("网络连接失败,请检查网络");
+            if(routePlanDoneListener!=null){
+                routePlanDoneListener.onRoutePlanDone();
+            }
+            return;
         }
+
+        mRxPermissions.request
+                (Manifest.permission.ACCESS_FINE_LOCATION)
+                .subscribe(permission -> {
+                    if (permission) {
+                        if (BaiduNaviManager.isNaviInited()) {
+                            routeplanToNavi(mSCoordinateType, mECoordinateType, slongitude, slatitude, elongitude, elatitude,sNodeName,eNodeName);
+                        }else {
+                            mContext.closeLoading();
+                            showToastMsg("初始失败");
+                        }
+                    } else {
+                        if(routePlanDoneListener!=null){
+                            routePlanDoneListener.onRoutePlanDone();
+                        }
+                        showToastMsg("定位权限被拒绝了");
+                    }
+                });
+
     }
     public void start(double slongitude, double slatitude, double elongitude, double elatitude) {
         start(slongitude, slatitude,elongitude,elatitude,null,null);
@@ -110,7 +132,7 @@ public class BaiduNavigation {
      * @param sNodeName  起点节点名字
      * @param sNodeName  终点节点名字
      */
-    public void start(LatLng sLatLng, LatLng eLatLng,String sNodeName, String eNodeName) {
+    public void start(LatLng sLatLng, LatLng eLatLng, String sNodeName, String eNodeName) {
         start(sLatLng.longitude, sLatLng.latitude, eLatLng.longitude, eLatLng.latitude,sNodeName,eNodeName);
     }
     public void start(LatLng sLatLng, LatLng eLatLng) {
@@ -253,27 +275,30 @@ public class BaiduNavigation {
             /*
 			 * 设置途径点以及resetEndNode会回调该接口
 			 */
-            routePlanDoneListener.onRoutePlanDone();
 
             for (Activity ac : activityList) {
 
                 if (ac.getClass().getName().endsWith("BNGuideActivity")) {
-                    LogUtil.i("tag", "不能从当前页面开启导航=" + mContext.getClass().getSimpleName());
+                    com.longshine.electriccars.utils.Logger.i("不能从当前activity开启导航=" + mContext.getClass().getSimpleName());
                     return;
                 }
             }
             Intent intent = new Intent(mContext, BNGuideActivity.class);
             Bundle bundle = new Bundle();
-            bundle.putSerializable(ROUTE_PLAN_NODE, (BNRoutePlanNode) mBNRoutePlanNode);
+            bundle.putSerializable(ROUTE_PLAN_NODE, mBNRoutePlanNode);
             intent.putExtras(bundle);
             mContext.startActivity(intent);
-
+            if(routePlanDoneListener!=null){
+                routePlanDoneListener.onRoutePlanDone();
+            }
 
         }
 
         @Override
         public void onRoutePlanFailed() {
-            routePlanDoneListener.onRoutePlanDone();
+            if(routePlanDoneListener!=null){
+                routePlanDoneListener.onRoutePlanDone();
+            }
             showToastMsg("算路失败,请重试");
         }
     }
@@ -298,65 +323,5 @@ public class BaiduNavigation {
         // 是否开启路况
         BNaviSettingManager.setRealRoadCondition(BNaviSettingManager.RealRoadCondition.NAVI_ITS_ON);
     }
-
-    private BNOuterTTSPlayerCallback mTTSCallback = new BNOuterTTSPlayerCallback() {
-
-        @Override
-        public void stopTTS() {
-            // TODO Auto-generated method stub
-            Log.e("test_TTS", "stopTTS");
-        }
-
-        @Override
-        public void resumeTTS() {
-            // TODO Auto-generated method stub
-            Log.e("test_TTS", "resumeTTS");
-        }
-
-        @Override
-        public void releaseTTSPlayer() {
-            // TODO Auto-generated method stub
-            Log.e("test_TTS", "releaseTTSPlayer");
-        }
-
-        @Override
-        public int playTTSText(String speech, int bPreempt) {
-            // TODO Auto-generated method stub
-            Log.e("test_TTS", "playTTSText" + "_" + speech + "_" + bPreempt);
-
-            return 1;
-        }
-
-        @Override
-        public void phoneHangUp() {
-            // TODO Auto-generated method stub
-            Log.e("test_TTS", "phoneHangUp");
-        }
-
-        @Override
-        public void phoneCalling() {
-            // TODO Auto-generated method stub
-            Log.e("test_TTS", "phoneCalling");
-        }
-
-        @Override
-        public void pauseTTS() {
-            // TODO Auto-generated method stub
-            Log.e("test_TTS", "pauseTTS");
-        }
-
-        @Override
-        public void initTTSPlayer() {
-            // TODO Auto-generated method stub
-            Log.e("test_TTS", "initTTSPlayer");
-        }
-
-        @Override
-        public int getTTSState() {
-            // TODO Auto-generated method stub
-            Log.e("test_TTS", "getTTSState");
-            return 1;
-        }
-    };
 
 }

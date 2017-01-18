@@ -1,4 +1,4 @@
-package com.optimumnano.autocharge.activity;
+package com.longshine.electriccars.baidu.service;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -13,22 +13,19 @@ import com.baidu.navisdk.adapter.BNRouteGuideManager;
 import com.baidu.navisdk.adapter.BNRouteGuideManager.CustomizedLayerItem;
 import com.baidu.navisdk.adapter.BNRouteGuideManager.OnNavigationListener;
 import com.baidu.navisdk.adapter.BNRoutePlanNode;
-import com.baidu.navisdk.adapter.BNRoutePlanNode.CoordinateType;
 import com.baidu.navisdk.adapter.BNaviBaseCallbackModel;
 import com.baidu.navisdk.adapter.BaiduNaviCommonModule;
 import com.baidu.navisdk.adapter.NaviModuleFactory;
 import com.baidu.navisdk.adapter.NaviModuleImpl;
-import com.optimumnano.autocharge.R;
-import com.optimumnano.autocharge.common.BaiduNavigation;
+import com.baidu.vi.VDeviceAPI;
+import com.longshine.electriccars.R;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 诱导界面
- *
+ * 导航界面
  * @author jack
- *
  */
 public class BNGuideActivity extends Activity {
 
@@ -99,8 +96,11 @@ public class BNGuideActivity extends Activity {
 	}
 
 	protected void onPause() {
-		super.onPause();
-
+		try {
+			super.onPause();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if(useCommonInterface) {
 			if(mBaiduNaviCommonModule != null) {
 				mBaiduNaviCommonModule.onPause();
@@ -109,13 +109,19 @@ public class BNGuideActivity extends Activity {
 			BNRouteGuideManager.getInstance().onPause();
 		}
 
-	};
+	}
 
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
+		try {
+			super.onDestroy();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if(useCommonInterface) {
 			if(mBaiduNaviCommonModule != null) {
+				VDeviceAPI.unsetNetworkChangedCallback();
+				hd.removeCallbacksAndMessages(null);
 				mBaiduNaviCommonModule.onDestroy();
 				mBaiduNaviCommonModule=null;
 			}
@@ -127,9 +133,14 @@ public class BNGuideActivity extends Activity {
 
 	}
 
+
 	@Override
 	protected void onStop() {
-		super.onStop();
+		try {
+			super.onStop();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if(useCommonInterface) {
 			if(mBaiduNaviCommonModule != null) {
 				mBaiduNaviCommonModule.onStop();
@@ -202,7 +213,7 @@ public class BNGuideActivity extends Activity {
 		CustomizedLayerItem item1 = null;
 		if (mBNRoutePlanNode != null) {
 			item1 = new CustomizedLayerItem(mBNRoutePlanNode.getLongitude(), mBNRoutePlanNode.getLatitude(),
-					mBNRoutePlanNode.getCoordinateType(), getResources().getDrawable(R.mipmap.icon_location),
+					mBNRoutePlanNode.getCoordinateType(), getResources().getDrawable(R.mipmap.ic_map_location),
 					CustomizedLayerItem.ALIGN_CENTER);
 			items.add(item1);
 
@@ -225,8 +236,8 @@ public class BNGuideActivity extends Activity {
 					} else if (msg.what == MSG_HIDE) {
 						BNRouteGuideManager.getInstance().showCustomizedLayer(false);
 					} else if (msg.what == MSG_RESET_NODE) {
-						BNRouteGuideManager.getInstance().resetEndNodeInNavi(
-								new BNRoutePlanNode(114.3793395781, 22.7236035873, "沃特玛", null, CoordinateType.BD09LL));
+//						BNRouteGuideManager.getInstance().resetEndNodeInNavi(
+//								new BNRoutePlanNode(114.3793395781, 22.7236035873, "沃特玛", null, CoordinateType.BD09LL));
 					}
 				};
 			};
